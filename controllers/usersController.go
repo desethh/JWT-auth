@@ -2,7 +2,7 @@ package controller
 
 import (
 	authorization "jwt/internal/app/auth"
-	"jwt/internal/app/jwt"
+	"jwt/pkg/jwt"
 	"net/http"
 	"os"
 

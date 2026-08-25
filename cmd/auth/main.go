@@ -4,6 +4,7 @@ import (
 	"jwt/dependencies"
 	"jwt/initializers"
 	authorization "jwt/internal/app/auth"
+	"jwt/internal/app/hasher"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +16,9 @@ func main() {
 		initializers.MigrateTables()
 	}
 
+	HasherRepo := hasher.NewBcryptHasher(10)
 	AuthRepository := authorization.NewAuthRepository(initializers.DB)
-	AuthService := authorization.NewAuthService(AuthRepository)
+	AuthService := authorization.NewAuthService(AuthRepository, HasherRepo)
 
 	depenedencies := dependencies.NewDependencies(AuthService)
 	controller := setupController(depenedencies)
@@ -30,18 +32,5 @@ func main() {
 
 	router.POST("/signup", controller.SignUp)
 	router.POST("/login", controller.Login)
-	// router.POST("/change-password", controller.ChangePassword)
 	router.Run()
 }
-
-// func LoginMiddleware() gin.HandlerFunc {
-// 	rate := limiter.Rate{
-// 		Period: time.Minute,
-// 		Limit:  5, // максимум 5 попыток login за минуту с одного IP
-// 	}
-
-// 	store := memory.NewStore()
-// 	instance := limiter.New(store, rate)
-
-// 	return mgin.NewMiddleware(instance)
-// }

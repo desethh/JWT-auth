@@ -9,4 +9,6 @@ var (
 	ErrEmailName        = fmt.Errorf("wrong email format")
 	ErrPasswordIsEmpty  = fmt.Errorf("password is empty")
 	ErrNameIsEmpty      = fmt.Errorf("name is empty")
+
+	ErrInvalidCredentials = fmt.Errorf("invalid credentials")
 )

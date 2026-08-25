@@ -4,20 +4,27 @@ import (
 	"jwt/models"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 )
+
+//go:generate mockgen -source service.go -destination service_mock.go -package authorization
 
 type AuthRepo interface {
 	GetUser(d LoginInRequestDTO) (*models.User, error)
 	CreateUser(d SignUpRequestDTO) error
 }
 
-type AuthService struct {
-	AuthRepo AuthRepo
+type PasswordHasher interface {
+	Hash(password string) (string, error)
+	Compare(hash, password string) error
 }
 
-func NewAuthService(authRepo AuthRepo) *AuthService {
-	return &AuthService{AuthRepo: authRepo}
+type AuthService struct {
+	AuthRepo AuthRepo
+	Hasher   PasswordHasher
+}
+
+func NewAuthService(authRepo AuthRepo, hasher PasswordHasher) *AuthService {
+	return &AuthService{AuthRepo: authRepo, Hasher: hasher}
 }
 
 func (s *AuthService) SignUp(d SignUpRequestDTO) error {
@@ -30,7 +37,7 @@ func (s *AuthService) SignUp(d SignUpRequestDTO) error {
 		return err
 	}
 
-	hashPass, err := bcrypt.GenerateFromPassword([]byte(d.Password), 10)
+	hashPass, err := s.Hasher.Hash(d.Password)
 	if err != nil {
 		log.Error("AuthService.SignUp.bcrypt.GenerateFromPassword failed: ", err)
 		return err
@@ -65,8 +72,8 @@ func (s *AuthService) LoginIn(d LoginInRequestDTO) (*models.User, error) {
 		return nil, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(d.Password)); err != nil {
-		log.Error("AuthService.LoginIn.CompareHashAndPassword failed: ", err)
+	if err := s.Hasher.Compare(user.Password, d.Password); err != nil {
+		log.Error("AuthService.LoginIn.Hasher.Compare failed: ", err)
 		return nil, err
 	}
 
