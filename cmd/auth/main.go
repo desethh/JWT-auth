@@ -7,6 +7,7 @@ import (
 	"jwt/internal/app/hasher"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -32,5 +33,6 @@ func main() {
 
 	router.POST("/signup", controller.SignUp)
 	router.POST("/login", controller.Login)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.Run()
 }
